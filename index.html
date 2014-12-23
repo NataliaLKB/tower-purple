@@ -30,6 +30,9 @@
             font-size: 1em;
             margin-bottom: 8em;
         }
+        a {
+            text-decoration: none;
+        }
         #contact {
             font-size: 1em;
             margin-bottom: 8em;
@@ -44,9 +47,6 @@
     </style>
     <title>Planet3/art//news</title>
     <script>
-    // To do:
-    // - Resize image to correspond to the height x width. 
-
 
         var difficulty = 1;
         var hoverTint = '#009900';
@@ -106,7 +106,7 @@
             stage.drawImage(img, 0, 0, puzzleWidth, puzzleHeight, 0, 0, puzzleWidth, puzzleHeight);
             console.log(levelCounter);
             if (levelCounter === 1) {
-                createTitle("Click to Start");
+                createTitle("Click Here to Start");
                 buildPieces();
                 //resets movesCounter between levels
                 movesCounter = 0;
@@ -118,13 +118,13 @@
                 buildPieces();
                 //resets movesCounter between levels
                 movesCounter = 0;
-                createTitle("Click to Start");
+                createTitle("Click Here to Start");
             } else {
                 createDomMessage("<p id='artname' class='deleteMe'>Tower Purple</p>");
                 createDomMessage("<p id='name' class='deleteMe'>M E Pettigrew</p>");
                 createDomMessage("<p id='description' class='deleteMe'>Active in London. Inspired in Berlin. Glasgow. Brighton</p><br>");
                 createDomMessage("<p id='description' class='deleteMe'>Translates color and space into 2D screenprints and 3D pieces</p><br>");
-
+                createDomMessage("<a href='http://maggiepettigrew.jimdo.com/' target='_blank'><p id='url' class='deleteMe'>maggiepettigrew.jimdo.com/</p></a><br>");
                 createDomMessage("<p id='finished-level' class='deleteMe'>Congratulations! You finished Level " + 
                 (levelCounter - 1) + " in " + movesCounter + " moves!</p>");
                 createDomMessage("<p class='deleteMe'>Ready for the Next Puzzle?</p>");
@@ -132,7 +132,7 @@
                 buildPieces();
                 //resets movesCounter between levels
                 movesCounter = 0;
-                createTitle("Click to Start");
+                createTitle("Click Here to Start");
             }
         }
         function createDomMessage (message) {
@@ -198,7 +198,7 @@
                     yPos += pieceHeight;
                 }
             }
-            document.onmousedown = shufflePuzzle;
+            canvas.onclick = shufflePuzzle;
         }
 
         function shufflePuzzle (){
@@ -225,23 +225,30 @@
                 }
             }
             document.onmousedown = onPuzzleClick;
-            document.addEventListener('touchstart', function (e) {
-                // stop touch event
-                e.stopPropagation();
-                e.preventDefault();
+            document.addEventListener('touchstart', touchStart);
+        }
 
-                // translate to mouse event
-                var clkEvt = document.createEvent('MouseEvent');
-                clkEvt.initMouseEvent('mousedown', true, true, window, e.detail, 
-                             e.touches[0].screenX, e.touches[0].screenY, 
-                             e.touches[0].clientX, e.touches[0].clientY, 
-                             false, false, false, false, 
-                             0, null);
-                document.dispatchEvent(clkEvt);
+        function touchStart (e) {
+            // stop touch event
+            e.stopPropagation();
+            e.preventDefault();
 
-                // or just handle touch event
-                onPuzzleClick(e);
-            }, false);
+            // translate to mouse event
+            var clkEvt = document.createEvent('MouseEvent');
+            clkEvt.initMouseEvent('mousedown', true, true, window, e.detail, 
+                         e.touches[0].screenX, e.touches[0].screenY, 
+                         e.touches[0].clientX, e.touches[0].clientY, 
+                         false, false, false, false, 
+                         0, null);
+            document.dispatchEvent(clkEvt);
+
+            // or just handle touch event
+            onPuzzleClick(e);
+        }
+
+        function shuffleArrayPieces (pieces){
+            for(var j, x, i = pieces.length; i; j = parseInt(Math.random() * i), x = pieces[--i], pieces[i] = pieces[j], pieces[j] = x);
+            return pieces;
         }
 
         function onPuzzleClick (e){
@@ -272,28 +279,30 @@
                 stage.restore();
 
                 document.onmousemove = updatePuzzle;
-                document.addEventListener('touchmove', function (e) {
-                    // stop touch event
-                    e.stopPropagation();
-                    e.preventDefault();
-
-                    // translate to mouse event
-                    var clkEvt = document.createEvent('MouseEvent');
-                    clkEvt.initMouseEvent('mousemove', true, true, window, e.detail, 
-                                 e.touches[0].screenX, e.touches[0].screenY, 
-                                 e.touches[0].clientX, e.touches[0].clientY, 
-                                 false, false, false, false, 
-                                 0, null);
-                    document.dispatchEvent(clkEvt);
-
-                    // or just handle touch event
-                    updatePuzzle(e);
-                }, false);
+                document.addEventListener('touchmove', touchMove);
 
                 document.onmouseup = pieceDropped;
                 document.addEventListener('touchend', pieceDropped);
                 return;
             }
+        }
+
+        function touchMove (e){
+            // stop touch event
+            e.stopPropagation();
+            e.preventDefault();
+
+            // translate to mouse event
+            var clkEvt = document.createEvent('MouseEvent');
+            clkEvt.initMouseEvent('mousemove', true, true, window, e.detail, 
+                         e.touches[0].screenX, e.touches[0].screenY, 
+                         e.touches[0].clientX, e.touches[0].clientY, 
+                         false, false, false, false, 
+                         0, null);
+            document.dispatchEvent(clkEvt);
+
+            // or just handle touch event
+            updatePuzzle(e);
         }
 
         function checkPieceClicked (e){
@@ -368,10 +377,9 @@
             //Counts number of moves in each level
             movesCounter +=1;
 
+            canvas.onclick = null;
             document.onmousemove = null;
             document.onmouseup = null;
-            document.addEventListener('touchend');
-            //do I need touch options for above?
 
             if(currentDropPiece != null){
                 var tmp = {xPos:currentPiece.xPos,yPos:currentPiece.yPos};
@@ -403,30 +411,28 @@
         }
         function gameOver (){
             console.log("level over");
+            
+            canvas.onclick = null;
             document.onmousedown = null;
             document.onmousemove = null;
             document.onmouseup = null;
-            //do I need touch options for above?
-            document.addEventListener('touchend', function() {
-                console.log("GameOver")
-            });
+
+            document.removeEventListener('touchstart', touchStart);
+            document.removeEventListener('touchmove', touchMove);
+            document.removeEventListener('touchend', pieceDropped);
 
             if (levelCounter === 5 ) {
                 createDomMessage("<p id='artname' class='deleteMe'>Tower Purple</p>");
                 createDomMessage("<p id='name' class='deleteMe'>M E Pettigrew</p>");
                 createDomMessage("<p id='description' class='deleteMe'>Active in London. Inspired in Berlin. Glasgow. Brighton</p><br>");
                 createDomMessage("<p id='description' class='deleteMe'>Translates color and space into 2D screenprints and 3D pieces</p><br>");
-                
+                createDomMessage("<a href='http://maggiepettigrew.jimdo.com/' target='_blank'><p id='url' class='deleteMe'>maggiepettigrew.jimdo.com/</p></a><br>");
                 createDomMessage("<p id'finished-level' class='deleteMe'>You Won the Game!</p>");
                 createDomMessage("<p class='deleteMe'>You finished Level " + 
                 (levelCounter) + " in " + movesCounter + " moves!</p>");
             } else {
                 init();
             }
-        }
-        function shuffleArrayPieces (pieces){
-            for(var j, x, i = pieces.length; i; j = parseInt(Math.random() * i), x = pieces[--i], pieces[i] = pieces[j], pieces[j] = x);
-            return pieces;
         }
 
     </script>
